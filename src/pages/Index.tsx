@@ -181,7 +181,7 @@ function ChatPanel({ name, subtitle, avatarEl, messages, onSend, onBack, onCall,
       {/* Emoji / Sticker / GIF panel */}
       {showPanel && (
         <div className="px-4 pb-2 buzz-slide-up">
-          <div className="bg-[#13131f] rounded-2xl p-3 border border-white/5 shadow-xl">
+          <div className="buzz-surface rounded-2xl p-3 border border-white/5 shadow-xl">
             {showPanel === "emoji" && (
               <div className="flex flex-wrap gap-2">
                 {EMOJIS.map(e => (
@@ -279,7 +279,7 @@ function ProfileSettingModal({ setting, value, onClose, onSave }: {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center buzz-fade-in">
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-        <div className="relative bg-[#12121e] border border-white/10 rounded-3xl p-6 w-80 shadow-2xl buzz-slide-up">
+        <div className="relative buzz-surface border border-white/10 rounded-3xl p-6 w-80 shadow-2xl buzz-slide-up">
           <h3 className="text-white font-bold text-lg mb-5 font-syne">Оформление</h3>
           <div className="flex gap-3 mb-5">
             <button
@@ -309,7 +309,7 @@ function ProfileSettingModal({ setting, value, onClose, onSave }: {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center buzz-fade-in">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-[#12121e] border border-white/10 rounded-3xl p-6 w-80 shadow-2xl buzz-slide-up">
+      <div className="relative buzz-surface border border-white/10 rounded-3xl p-6 w-80 shadow-2xl buzz-slide-up">
         <h3 className="text-white font-bold text-lg mb-4 font-syne">{setting}</h3>
         {typeof value === "boolean" ? (
           <div className="flex items-center justify-between">
@@ -371,7 +371,7 @@ function CreateGroupModal({ onClose, onCreate }: {
   return (
     <div className="fixed inset-0 z-50 flex items-end md:items-center md:justify-center buzz-fade-in">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full md:w-[420px] bg-[#12121e] border border-white/10 rounded-t-3xl md:rounded-3xl shadow-2xl flex flex-col max-h-[85vh] buzz-slide-up">
+      <div className="relative w-full md:w-[420px] buzz-surface border border-white/10 rounded-t-3xl md:rounded-3xl shadow-2xl flex flex-col max-h-[85vh] buzz-slide-up">
         {/* Handle */}
         <div className="flex justify-center pt-3 pb-1 md:hidden">
           <div className="w-10 h-1 rounded-full bg-white/20" />
@@ -585,7 +585,7 @@ export default function Index() {
         </div>
 
         {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto px-3 pb-4 custom-scroll">
+        <div className="flex-1 overflow-y-auto px-3 pb-20 custom-scroll">
 
           {/* CHATS */}
           {tab === "chats" && (
@@ -792,16 +792,16 @@ export default function Index() {
             showPanel={chatPanel}
             setPanel={setChatPanel}
           />
-        ) : activeView?.kind === "group" && activeGroup ? (
+        ) : activeView?.kind === "group" ? (
           <ChatPanel
-            name={activeGroup.name}
-            subtitle={`${activeGroup.members} участников`}
+            name={activeGroup?.name ?? ""}
+            subtitle={`${activeGroup?.members ?? 0} участников`}
             avatarEl={
               <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-xl">
-                {activeGroup.avatar}
+                {activeGroup?.avatar ?? "👥"}
               </div>
             }
-            messages={activeGroup.messages}
+            messages={activeGroup?.messages ?? []}
             onSend={sendToGroup}
             onBack={() => switchView(null)}
             onCall={() => setCalling(true)}
@@ -817,7 +817,7 @@ export default function Index() {
       {showContacts && (
         <div className="fixed inset-0 z-40 flex items-end md:items-center md:justify-center buzz-fade-in">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowContacts(false)} />
-          <div className="relative w-full md:w-96 bg-[#12121e] border border-white/10 rounded-t-3xl md:rounded-3xl shadow-2xl flex flex-col max-h-[80vh] buzz-slide-up">
+          <div className="relative w-full md:w-96 buzz-surface border border-white/10 rounded-t-3xl md:rounded-3xl shadow-2xl flex flex-col max-h-[80vh] buzz-slide-up">
             <div className="flex justify-center pt-3 pb-1 md:hidden">
               <div className="w-10 h-1 rounded-full bg-white/20" />
             </div>
