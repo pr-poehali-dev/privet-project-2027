@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import type { ReactNode } from "react";
 import Icon from "@/components/ui/icon";
 
 type Tab = "chats" | "groups" | "profile";
@@ -65,6 +66,7 @@ const INITIAL_GROUPS: GroupChat[] = [
 
 const EMOJIS   = ["😊","😂","🔥","❤️","👍","😎","🎉","😍","🤩","😜","🙏","💯","✨","🚀","🎮","🎵","👀","🤣","😭","💪"];
 const STICKERS = ["😂","🥳","😍","🤯","👻","🐱","🦊","🎯","💎","⚡"];
+const GROUP_AVATARS = ["🚀","🎮","✈️","📰","🎵","🏆","💡","🎯","🌍","🔥"];
 
 function getNow() {
   return new Date().toLocaleTimeString("ru", { hour: "2-digit", minute: "2-digit" });
@@ -76,7 +78,7 @@ function getNow() {
 interface ChatPanelProps {
   name: string;
   subtitle: string;
-  avatarEl: React.ReactNode;
+  avatarEl: ReactNode;
   messages: ChatMessage[];
   onSend: (text: string, type: "text" | "sticker" | "voice") => void;
   onBack: () => void;
@@ -183,7 +185,7 @@ function ChatPanel({ name, subtitle, avatarEl, messages, onSend, onBack, onCall,
             {showPanel === "emoji" && (
               <div className="flex flex-wrap gap-2">
                 {EMOJIS.map(e => (
-                  <button key={e} onClick={() => setMsg(m => m + e)} className="text-2xl hover:scale-125 transition-transform active:scale-95">{e}</button>
+                  <button key={e} onClick={() => setMsg(msg + e)} className="text-2xl hover:scale-125 transition-transform active:scale-95">{e}</button>
                 ))}
               </div>
             )}
@@ -192,7 +194,8 @@ function ChatPanel({ name, subtitle, avatarEl, messages, onSend, onBack, onCall,
                 <p className="text-white/30 text-xs mb-2 font-semibold uppercase tracking-wide">Стикеры</p>
                 <div className="flex flex-wrap gap-3">
                   {STICKERS.map(s => (
-                    <button key={s} onClick={() => send(s, "sticker")} className="text-4xl hover:scale-125 transition-transform active:scale-95">{s}</button>
+                    <button key={s} onClick={() => { onSend(s, "sticker"); setPanel(null); }}
+                      className="text-4xl hover:scale-125 transition-transform active:scale-95">{s}</button>
                   ))}
                 </div>
               </div>
@@ -218,15 +221,15 @@ function ChatPanel({ name, subtitle, avatarEl, messages, onSend, onBack, onCall,
       {/* Input */}
       <div className="px-4 pb-5 pt-2 shrink-0">
         <div className="flex items-center gap-2 bg-white/5 rounded-2xl px-3 py-2 border border-white/5 focus-within:border-violet-500/30 transition-all">
-          <button onClick={() => setPanel(p => p === "emoji" ? null : "emoji")}
+          <button onClick={() => setPanel(showPanel === "emoji" ? null : "emoji")}
             className={`w-8 h-8 flex items-center justify-center text-xl transition-all hover:scale-110 ${showPanel === "emoji" ? "opacity-100" : "opacity-40 hover:opacity-70"}`}>
             😊
           </button>
-          <button onClick={() => setPanel(p => p === "sticker" ? null : "sticker")}
+          <button onClick={() => setPanel(showPanel === "sticker" ? null : "sticker")}
             className={`w-8 h-8 flex items-center justify-center text-xs font-black transition-all ${showPanel === "sticker" ? "text-violet-300" : "text-white/30 hover:text-white/60"}`}>
             STK
           </button>
-          <button onClick={() => setPanel(p => p === "gif" ? null : "gif")}
+          <button onClick={() => setPanel(showPanel === "gif" ? null : "gif")}
             className={`w-8 h-8 flex items-center justify-center text-xs font-black transition-all ${showPanel === "gif" ? "text-violet-300" : "text-white/30 hover:text-white/60"}`}>
             GIF
           </button>
@@ -269,6 +272,40 @@ function ProfileSettingModal({ setting, value, onClose, onSave }: {
   onSave: (v: string | boolean) => void;
 }) {
   const [val, setVal] = useState(value);
+
+  // Special theme picker
+  if (setting === "Оформление") {
+    const themeVal = val as string;
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center buzz-fade-in">
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+        <div className="relative bg-[#12121e] border border-white/10 rounded-3xl p-6 w-80 shadow-2xl buzz-slide-up">
+          <h3 className="text-white font-bold text-lg mb-5 font-syne">Оформление</h3>
+          <div className="flex gap-3 mb-5">
+            <button
+              onClick={() => setVal("dark")}
+              className={`flex-1 flex flex-col items-center gap-2 py-5 rounded-2xl border-2 transition-all ${themeVal === "dark" ? "border-violet-500 bg-violet-500/10" : "border-white/10 bg-white/5 hover:bg-white/8"}`}
+            >
+              <span className="text-3xl">🌙</span>
+              <span className={`text-sm font-semibold ${themeVal === "dark" ? "text-violet-300" : "text-white/50"}`}>Тёмная</span>
+            </button>
+            <button
+              onClick={() => setVal("light")}
+              className={`flex-1 flex flex-col items-center gap-2 py-5 rounded-2xl border-2 transition-all ${themeVal === "light" ? "border-violet-500 bg-violet-500/10" : "border-white/10 bg-white/5 hover:bg-white/8"}`}
+            >
+              <span className="text-3xl">☀️</span>
+              <span className={`text-sm font-semibold ${themeVal === "light" ? "text-violet-300" : "text-white/50"}`}>Светлая</span>
+            </button>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-white/5 text-white/50 text-sm hover:bg-white/10 transition-colors">Отмена</button>
+            <button onClick={() => { onSave(val); onClose(); }} className="flex-1 py-2.5 rounded-xl buzz-gradient text-white text-sm font-semibold hover:opacity-90 transition-opacity">Сохранить</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center buzz-fade-in">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
@@ -302,6 +339,124 @@ function ProfileSettingModal({ setting, value, onClose, onSave }: {
 }
 
 /* ─────────────────────────────────────────────────────── */
+/*  Create Group Modal                                      */
+/* ─────────────────────────────────────────────────────── */
+function CreateGroupModal({ onClose, onCreate }: {
+  onClose: () => void;
+  onCreate: (group: GroupChat) => void;
+}) {
+  const [groupName, setGroupName] = useState("");
+  const [selectedAvatar, setSelectedAvatar] = useState(GROUP_AVATARS[0]);
+  const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
+
+  const toggleMember = (id: number) => {
+    setSelectedMembers(prev =>
+      prev.includes(id) ? prev.filter(m => m !== id) : [...prev, id]
+    );
+  };
+
+  const handleCreate = () => {
+    if (!groupName.trim()) return;
+    const newGroup: GroupChat = {
+      id: Date.now(),
+      name: groupName.trim(),
+      avatar: selectedAvatar,
+      members: selectedMembers.length + 1,
+      messages: [],
+    };
+    onCreate(newGroup);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end md:items-center md:justify-center buzz-fade-in">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full md:w-[420px] bg-[#12121e] border border-white/10 rounded-t-3xl md:rounded-3xl shadow-2xl flex flex-col max-h-[85vh] buzz-slide-up">
+        {/* Handle */}
+        <div className="flex justify-center pt-3 pb-1 md:hidden">
+          <div className="w-10 h-1 rounded-full bg-white/20" />
+        </div>
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 pt-4 pb-3">
+          <h2 className="text-white font-bold text-lg font-syne">Создать группу</h2>
+          <button onClick={onClose} className="w-8 h-8 rounded-xl hover:bg-white/10 flex items-center justify-center transition-colors">
+            <Icon name="X" size={16} className="text-white/50" />
+          </button>
+        </div>
+
+        <div className="overflow-y-auto px-5 pb-6 flex flex-col gap-5 custom-scroll">
+          {/* Group name */}
+          <div>
+            <p className="text-white/40 text-xs font-semibold uppercase tracking-wide mb-2">Название группы</p>
+            <input
+              autoFocus
+              value={groupName}
+              onChange={e => setGroupName(e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm outline-none focus:border-violet-500/50 transition-colors placeholder:text-white/25"
+              placeholder="Введите название..."
+            />
+          </div>
+
+          {/* Avatar emoji picker */}
+          <div>
+            <p className="text-white/40 text-xs font-semibold uppercase tracking-wide mb-2">Аватар</p>
+            <div className="flex flex-wrap gap-2">
+              {GROUP_AVATARS.map(emoji => (
+                <button
+                  key={emoji}
+                  onClick={() => setSelectedAvatar(emoji)}
+                  className={`w-11 h-11 rounded-2xl text-2xl flex items-center justify-center transition-all border-2 ${selectedAvatar === emoji ? "border-violet-500 bg-violet-500/15 scale-110" : "border-transparent bg-white/5 hover:bg-white/10"}`}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Members */}
+          <div>
+            <p className="text-white/40 text-xs font-semibold uppercase tracking-wide mb-2">Участники</p>
+            <div className="flex flex-col gap-1">
+              {ALL_CONTACTS.map(contact => {
+                const checked = selectedMembers.includes(contact.id);
+                return (
+                  <button
+                    key={contact.id}
+                    onClick={() => toggleMember(contact.id)}
+                    className={`flex items-center gap-3 p-3 rounded-2xl transition-all text-left ${checked ? "bg-violet-500/10 border border-violet-500/20" : "bg-white/5 border border-transparent hover:bg-white/8"}`}
+                  >
+                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${contact.color} flex items-center justify-center text-white font-bold text-sm shadow-md shrink-0`}>
+                      {contact.avatar}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white/80 text-sm font-medium truncate">{contact.name}</p>
+                      <p className="text-white/30 text-xs truncate">{contact.username}</p>
+                    </div>
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${checked ? "bg-violet-500 border-violet-500" : "border-white/20"}`}>
+                      {checked && <Icon name="Check" size={11} className="text-white" />}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Create button */}
+          <button
+            onClick={handleCreate}
+            disabled={!groupName.trim()}
+            className="w-full py-3 rounded-2xl buzz-gradient text-white font-semibold text-sm hover:opacity-90 active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-lg shadow-violet-500/30"
+          >
+            Создать группу {selectedMembers.length > 0 && `(${selectedMembers.length + 1} участн.)`}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────── */
 /*  Main App                                               */
 /* ─────────────────────────────────────────────────────── */
 export default function Index() {
@@ -310,15 +465,23 @@ export default function Index() {
   const [chats, setChats]           = useState<Chat[]>([]);
   const [groupChats, setGroupChats] = useState<GroupChat[]>(INITIAL_GROUPS);
   const [showContacts, setShowContacts] = useState(false);
+  const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [contactSearch, setContactSearch] = useState("");
   const [calling, setCalling]       = useState(false);
+
+  // Separate state for personal chats
   const [chatMsg, setChatMsg]       = useState("");
   const [chatPanel, setChatPanel]   = useState<"emoji" | "gif" | "sticker" | null>(null);
+
+  // Separate state for group chats
+  const [groupMsg, setGroupMsg]     = useState("");
+  const [groupPanel, setGroupPanel] = useState<"emoji" | "gif" | "sticker" | null>(null);
+
   const [profile, setProfile]       = useState<ProfileSettings>({
     name: "Иван Иванов", username: "@ivan_buzz", status: "На орбите 🚀",
     photo: null, notifications: true, theme: "dark",
   });
-  const [openSetting, setOpenSetting] = useState<keyof ProfileSettings | null>(null);
+  const [openSetting, setOpenSetting] = useState<keyof ProfileSettings | "theme_ui" | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Применяем тему к документу
@@ -332,8 +495,6 @@ export default function Index() {
 
   const switchView = (view: ActiveView) => {
     setActiveView(view);
-    setChatMsg("");
-    setChatPanel(null);
   };
 
   const openOrCreateChat = (contact: Contact) => {
@@ -395,21 +556,13 @@ export default function Index() {
       {/* ══════════════ SIDEBAR ══════════════ */}
       <aside className={`buzz-sidebar flex flex-col w-full md:w-80 shrink-0 border-r border-white/5 relative ${isActive ? "hidden md:flex" : "flex"}`}>
 
-        {/* Logo + FAB */}
+        {/* Logo */}
         <div className="flex items-center gap-3 px-5 pt-6 pb-4">
           <div className="w-9 h-9 rounded-2xl buzz-gradient flex items-center justify-center shadow-lg shadow-violet-500/40">
             <span className="text-white font-black text-base font-syne">B</span>
           </div>
           <span className="text-white font-black text-xl tracking-tight font-syne">Buzz</span>
           <div className="ml-auto flex gap-1">
-            {/* FAB — перенесена сюда, слева от поиска */}
-            <button
-              onClick={() => setShowContacts(true)}
-              className="w-9 h-9 rounded-xl buzz-gradient flex items-center justify-center shadow-lg shadow-violet-500/40 hover:scale-105 active:scale-95 transition-transform"
-              title="Найти контакт"
-            >
-              <Icon name="UserPlus" size={15} className="text-white" />
-            </button>
             <button className="w-8 h-8 rounded-xl hover:bg-white/10 flex items-center justify-center transition-colors">
               <Icon name="Search" size={15} className="text-white/40" />
             </button>
@@ -479,7 +632,9 @@ export default function Index() {
           {/* GROUPS */}
           {tab === "groups" && (
             <div className="flex flex-col gap-1">
-              <button className="flex items-center gap-3 p-3 mb-2 rounded-2xl border border-dashed border-violet-500/30 hover:border-violet-500/60 hover:bg-violet-500/5 transition-all">
+              <button
+                onClick={() => setShowCreateGroup(true)}
+                className="flex items-center gap-3 p-3 mb-2 rounded-2xl border border-dashed border-violet-500/30 hover:border-violet-500/60 hover:bg-violet-500/5 transition-all">
                 <div className="w-10 h-10 rounded-xl buzz-gradient flex items-center justify-center shadow-lg shadow-violet-500/30">
                   <Icon name="Plus" size={18} className="text-white" />
                 </div>
@@ -567,18 +722,17 @@ export default function Index() {
                   </button>
                 ))}
 
-                {/* Тема — переключатель прямо в строке */}
+                {/* Тема — открывает модалку с выбором */}
                 <button
-                  onClick={() => setProfile(p => ({ ...p, theme: p.theme === "dark" ? "light" : "dark" }))}
+                  onClick={() => setOpenSetting("theme_ui")}
                   className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl hover:bg-white/10 transition-colors text-left border border-transparent hover:border-white/5"
                 >
                   <div className="w-9 h-9 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center shrink-0">
                     <Icon name={profile.theme === "dark" ? "Moon" : "Sun"} size={15} className="text-violet-300" />
                   </div>
                   <span className="text-white/75 text-sm font-medium flex-1">Оформление</span>
-                  <div className={`w-11 h-6 rounded-full transition-all relative shrink-0 ${profile.theme === "light" ? "buzz-gradient" : "bg-white/10"}`}>
-                    <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all duration-300 ${profile.theme === "light" ? "left-[22px]" : "left-0.5"}`} />
-                  </div>
+                  <span className="text-white/30 text-xs">{profile.theme === "dark" ? "Тёмная" : "Светлая"}</span>
+                  <Icon name="ChevronRight" size={13} className="text-white/15" />
                 </button>
 
                 <button className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl hover:bg-red-500/10 transition-colors text-left border border-transparent hover:border-red-500/20 mt-1">
@@ -592,6 +746,17 @@ export default function Index() {
             </div>
           )}
         </div>
+
+        {/* FAB — найти контакт, только на вкладке chats */}
+        {tab === "chats" && (
+          <button
+            onClick={() => setShowContacts(true)}
+            className="absolute bottom-5 left-4 w-12 h-12 rounded-2xl buzz-gradient flex items-center justify-center shadow-lg shadow-violet-500/40 hover:scale-105 active:scale-95 transition-transform z-10"
+            title="Найти контакт"
+          >
+            <Icon name="UserPlus" size={18} className="text-white" />
+          </button>
+        )}
       </aside>
 
       {/* ══════════════ MAIN AREA ══════════════ */}
@@ -640,10 +805,10 @@ export default function Index() {
             onSend={sendToGroup}
             onBack={() => switchView(null)}
             onCall={() => setCalling(true)}
-            msg={chatMsg}
-            setMsg={setChatMsg}
-            showPanel={chatPanel}
-            setPanel={setChatPanel}
+            msg={groupMsg}
+            setMsg={setGroupMsg}
+            showPanel={groupPanel}
+            setPanel={setGroupPanel}
           />
         ) : null}
       </main>
@@ -684,13 +849,11 @@ export default function Index() {
                     </div>
                     {contact.online && <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-[#12121e]" />}
                   </div>
-                  <div className="flex-1">
-                    <p className="text-white font-semibold text-sm">{contact.name}</p>
-                    <p className="text-white/30 text-xs">{contact.username}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white/80 font-semibold text-sm truncate">{contact.name}</p>
+                    <p className="text-white/30 text-xs truncate">{contact.username}</p>
                   </div>
-                  <div className={`text-xs px-2.5 py-1 rounded-full font-semibold ${contact.online ? "bg-emerald-500/15 text-emerald-400" : "bg-white/5 text-white/25"}`}>
-                    {contact.online ? "онлайн" : "оффлайн"}
-                  </div>
+                  <div className={`w-2 h-2 rounded-full shrink-0 ${contact.online ? "bg-emerald-400" : "bg-white/15"}`} />
                 </button>
               ))}
             </div>
@@ -698,13 +861,31 @@ export default function Index() {
         </div>
       )}
 
+      {/* ══════════════ CREATE GROUP MODAL ══════════════ */}
+      {showCreateGroup && (
+        <CreateGroupModal
+          onClose={() => setShowCreateGroup(false)}
+          onCreate={group => setGroupChats(prev => [...prev, group])}
+        />
+      )}
+
       {/* ══════════════ PROFILE SETTING MODAL ══════════════ */}
-      {openSetting && openSetting in SETTING_LABELS && (
+      {openSetting && openSetting !== "theme_ui" && openSetting in SETTING_LABELS && (
         <ProfileSettingModal
-          setting={SETTING_LABELS[openSetting]!}
-          value={profile[openSetting] as string | boolean}
+          setting={SETTING_LABELS[openSetting as keyof ProfileSettings]!}
+          value={profile[openSetting as keyof ProfileSettings] as string | boolean}
           onClose={() => setOpenSetting(null)}
           onSave={v => setProfile(p => ({ ...p, [openSetting]: v }))}
+        />
+      )}
+
+      {/* Theme modal */}
+      {openSetting === "theme_ui" && (
+        <ProfileSettingModal
+          setting="Оформление"
+          value={profile.theme}
+          onClose={() => setOpenSetting(null)}
+          onSave={v => setProfile(p => ({ ...p, theme: v as "dark" | "light" }))}
         />
       )}
 
