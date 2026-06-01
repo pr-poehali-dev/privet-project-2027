@@ -115,6 +115,91 @@
   -webkit-backdrop-filter: blur(24px);
 }
 
+/* ── Light theme ── */
+.light-theme {
+  background-color: #f0f0f8;
+}
+
+.light-theme .buzz-sidebar {
+  background: linear-gradient(180deg, #ebebf8 0%, #e4e4f2 100%) !important;
+}
+
+.light-theme .buzz-msg-them {
+  background: rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: #1a1a2e;
+}
+
+.light-theme .buzz-msg-them p {
+  color: #1a1a2e;
+}
+
+/* Main backgrounds */
+.light-theme [class*="bg-\\[#0a0a12\\]"] {
+  background-color: #f0f0f8 !important;
+}
+.light-theme [class*="bg-\\[#13131f\\]"] {
+  background-color: #e4e4f2 !important;
+}
+.light-theme [class*="bg-\\[#12121e\\]"] {
+  background-color: #e4e4f2 !important;
+}
+.light-theme [class*="bg-\\[#1a1a2e\\]"] {
+  background-color: #d8d8ec !important;
+}
+.light-theme .buzz-call-bg {
+  background: rgba(240, 240, 248, 0.95) !important;
+}
+
+/* Text */
+.light-theme .text-white {
+  color: #1a1a2e !important;
+}
+.light-theme .text-white\/80 {
+  color: rgba(26, 26, 46, 0.85) !important;
+}
+.light-theme .text-white\/75 {
+  color: rgba(26, 26, 46, 0.75) !important;
+}
+.light-theme .text-white\/60 {
+  color: rgba(26, 26, 46, 0.6) !important;
+}
+.light-theme .text-white\/50 {
+  color: rgba(26, 26, 46, 0.5) !important;
+}
+.light-theme .text-white\/40 {
+  color: rgba(26, 26, 46, 0.4) !important;
+}
+.light-theme .text-white\/35 {
+  color: rgba(26, 26, 46, 0.35) !important;
+}
+.light-theme .text-white\/30 {
+  color: rgba(26, 26, 46, 0.3) !important;
+}
+.light-theme .text-white\/25 {
+  color: rgba(26, 26, 46, 0.25) !important;
+}
+.light-theme .text-white\/20 {
+  color: rgba(26, 26, 46, 0.2) !important;
+}
+
+/* Surfaces */
+.light-theme .bg-white\/5 {
+  background: rgba(0, 0, 0, 0.04) !important;
+}
+.light-theme .bg-white\/8 {
+  background: rgba(0, 0, 0, 0.06) !important;
+}
+.light-theme .bg-white\/10 {
+  background: rgba(0, 0, 0, 0.08) !important;
+}
+.light-theme .border-white\/5 {
+  border-color: rgba(0, 0, 0, 0.06) !important;
+}
+.light-theme .border-white\/10 {
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
 /* Custom scrollbar */
 .custom-scroll {
   scrollbar-width: thin;

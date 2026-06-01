@@ -83,10 +83,15 @@ interface ChatPanelProps {
   onCall: () => void;
 }
 
-function ChatPanel({ name, subtitle, avatarEl, messages, onSend, onBack, onCall }: ChatPanelProps) {
-  const [msg, setMsg]           = useState("");
-  const [showPanel, setPanel]   = useState<"emoji" | "gif" | "sticker" | null>(null);
-  const endRef                  = useRef<HTMLDivElement>(null);
+interface ChatPanelExtraProps {
+  msg: string;
+  setMsg: (v: string) => void;
+  showPanel: "emoji" | "gif" | "sticker" | null;
+  setPanel: (v: "emoji" | "gif" | "sticker" | null) => void;
+}
+
+function ChatPanel({ name, subtitle, avatarEl, messages, onSend, onBack, onCall, msg, setMsg, showPanel, setPanel }: ChatPanelProps & ChatPanelExtraProps) {
+  const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -159,9 +164,9 @@ function ChatPanel({ name, subtitle, avatarEl, messages, onSend, onBack, onCall 
                     </div>
                   </div>
                 ) : (
-                  <div className={`px-4 py-2.5 rounded-2xl max-w-[75%] ${m.from === "me" ? "buzz-msg-me rounded-br-sm" : "buzz-msg-them rounded-bl-sm"}`}>
-                    <p className="text-white text-sm leading-relaxed">{m.text}</p>
-                    <p className={`text-[10px] mt-1 ${m.from === "me" ? "text-white/35 text-right" : "text-white/25"}`}>{m.time}</p>
+                  <div className={`px-3 py-2 rounded-2xl max-w-[65%] min-w-0 ${m.from === "me" ? "buzz-msg-me rounded-br-sm" : "buzz-msg-them rounded-bl-sm"}`}>
+                    <p className="text-white text-xs leading-relaxed break-words whitespace-pre-wrap">{m.text}</p>
+                    <p className={`text-[9px] mt-0.5 ${m.from === "me" ? "text-white/35 text-right" : "text-white/25"}`}>{m.time}</p>
                   </div>
                 )}
               </div>
@@ -307,6 +312,8 @@ export default function Index() {
   const [showContacts, setShowContacts] = useState(false);
   const [contactSearch, setContactSearch] = useState("");
   const [calling, setCalling]       = useState(false);
+  const [chatMsg, setChatMsg]       = useState("");
+  const [chatPanel, setChatPanel]   = useState<"emoji" | "gif" | "sticker" | null>(null);
   const [profile, setProfile]       = useState<ProfileSettings>({
     name: "Иван Иванов", username: "@ivan_buzz", status: "На орбите 🚀",
     photo: null, notifications: true, theme: "dark",
@@ -314,18 +321,29 @@ export default function Index() {
   const [openSetting, setOpenSetting] = useState<keyof ProfileSettings | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Применяем тему к документу
+  useEffect(() => {
+    document.documentElement.classList.toggle("light-theme", profile.theme === "light");
+  }, [profile.theme]);
+
   const activeChat    = activeView?.kind === "chat"  ? chats.find(c => c.id === activeView.id)      : null;
   const activeGroup   = activeView?.kind === "group" ? groupChats.find(g => g.id === activeView.id) : null;
   const activeChatContact = activeChat ? ALL_CONTACTS.find(c => c.id === activeChat.contactId) : null;
 
+  const switchView = (view: ActiveView) => {
+    setActiveView(view);
+    setChatMsg("");
+    setChatPanel(null);
+  };
+
   const openOrCreateChat = (contact: Contact) => {
     const existing = chats.find(c => c.contactId === contact.id);
     if (existing) {
-      setActiveView({ kind: "chat", id: existing.id });
+      switchView({ kind: "chat", id: existing.id });
     } else {
       const newChat: Chat = { id: Date.now(), contactId: contact.id, messages: [] };
       setChats(prev => [...prev, newChat]);
-      setActiveView({ kind: "chat", id: newChat.id });
+      switchView({ kind: "chat", id: newChat.id });
     }
     setShowContacts(false);
     setTab("chats");
@@ -435,7 +453,7 @@ export default function Index() {
                   if (!contact) return null;
                   const isSelected = activeView?.kind === "chat" && activeView.id === chat.id;
                   return (
-                    <button key={chat.id} onClick={() => setActiveView({ kind: "chat", id: chat.id })}
+                    <button key={chat.id} onClick={() => switchView({ kind: "chat", id: chat.id })}
                       className={`flex items-center gap-3 p-3 rounded-2xl transition-all duration-200 text-left buzz-chat-item ${isSelected ? "buzz-tab-active" : "hover:bg-white/5"}`}
                       style={{ animationDelay: `${i * 40}ms` }}>
                       <div className="relative shrink-0">
@@ -472,7 +490,7 @@ export default function Index() {
                 const lastM = g.messages[g.messages.length - 1];
                 return (
                   <button key={g.id}
-                    onClick={() => setActiveView({ kind: "group", id: g.id })}
+                    onClick={() => switchView({ kind: "group", id: g.id })}
                     className={`flex items-center gap-3 p-3 rounded-2xl transition-all text-left buzz-chat-item ${isSelected ? "buzz-tab-active" : "hover:bg-white/5"}`}
                     style={{ animationDelay: `${i * 40}ms` }}>
                     <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-2xl shrink-0">
@@ -532,13 +550,12 @@ export default function Index() {
               {/* Settings list */}
               <div className="w-full flex flex-col gap-2">
                 {([
-                  ["name",          "User",        "Имя",                  profile.name],
-                  ["username",      "AtSign",      "Никнейм",              profile.username],
-                  ["notifications", "Bell",        "Уведомления",          profile.notifications ? "Вкл" : "Выкл"],
-                  ["theme",         "Palette",     "Оформление",           "Тёмная"],
+                  ["name",          "User",    "Имя",          profile.name],
+                  ["username",      "AtSign",  "Никнейм",      profile.username],
+                  ["notifications", "Bell",    "Уведомления",  profile.notifications ? "Вкл" : "Выкл"],
                 ] as [keyof ProfileSettings, string, string, string][]).map(([key, icon, label, sub]) => (
                   <button key={key}
-                    onClick={() => key !== "theme" ? setOpenSetting(key) : undefined}
+                    onClick={() => setOpenSetting(key)}
                     className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl hover:bg-white/10 transition-colors text-left border border-transparent hover:border-white/5"
                   >
                     <div className="w-9 h-9 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center shrink-0">
@@ -549,6 +566,20 @@ export default function Index() {
                     <Icon name="ChevronRight" size={13} className="text-white/15" />
                   </button>
                 ))}
+
+                {/* Тема — переключатель прямо в строке */}
+                <button
+                  onClick={() => setProfile(p => ({ ...p, theme: p.theme === "dark" ? "light" : "dark" }))}
+                  className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl hover:bg-white/10 transition-colors text-left border border-transparent hover:border-white/5"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center shrink-0">
+                    <Icon name={profile.theme === "dark" ? "Moon" : "Sun"} size={15} className="text-violet-300" />
+                  </div>
+                  <span className="text-white/75 text-sm font-medium flex-1">Оформление</span>
+                  <div className={`w-11 h-6 rounded-full transition-all relative shrink-0 ${profile.theme === "light" ? "buzz-gradient" : "bg-white/10"}`}>
+                    <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all duration-300 ${profile.theme === "light" ? "left-[22px]" : "left-0.5"}`} />
+                  </div>
+                </button>
 
                 <button className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl hover:bg-red-500/10 transition-colors text-left border border-transparent hover:border-red-500/20 mt-1">
                   <div className="w-9 h-9 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0">
@@ -589,8 +620,12 @@ export default function Index() {
             }
             messages={activeChat.messages}
             onSend={sendToChat}
-            onBack={() => setActiveView(null)}
+            onBack={() => switchView(null)}
             onCall={() => setCalling(true)}
+            msg={chatMsg}
+            setMsg={setChatMsg}
+            showPanel={chatPanel}
+            setPanel={setChatPanel}
           />
         ) : activeView?.kind === "group" && activeGroup ? (
           <ChatPanel
@@ -603,8 +638,12 @@ export default function Index() {
             }
             messages={activeGroup.messages}
             onSend={sendToGroup}
-            onBack={() => setActiveView(null)}
+            onBack={() => switchView(null)}
             onCall={() => setCalling(true)}
+            msg={chatMsg}
+            setMsg={setChatMsg}
+            showPanel={chatPanel}
+            setPanel={setChatPanel}
           />
         ) : null}
       </main>
